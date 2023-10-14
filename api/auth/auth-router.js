@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require('../users/users-model')
 
-router.post('/register', (req, res) => {
+router.post('/register', (req, res, next) => {
   
   /*
     IMPLEMENT
@@ -32,7 +32,13 @@ router.post('/register', (req, res) => {
     4- On FAILED registration due to the `username` being taken,
       the response body should include a string exactly as follows: "username taken".
   */
-  res.end('implement register, please!');
+  const { username, password } = req.body
+  const hash = bcrypt.hashSync(password, 8)
+  User.add({ username, password: hash })
+    .then(created => {
+      res.status(201).json(created)
+    })
+    .catch(next)
 });
 
 router.post('/login', (req, res) => {
