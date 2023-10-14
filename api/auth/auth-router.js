@@ -3,7 +3,7 @@ require("dotenv").config()
 const router = require('express').Router();
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const { checkMissing, checkUsernameFree, checkSpaces } = require("./auth-middleware")
+const { checkMissing, checkUsernameFree, checkSpaces, checkUsernameExists } = require("./auth-middleware")
 const User = require('../users/users-model')
 
 router.post('/register', checkMissing, checkSpaces, checkUsernameFree , (req, res, next) => {
@@ -42,7 +42,7 @@ router.post('/register', checkMissing, checkSpaces, checkUsernameFree , (req, re
     .catch(next)
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', checkMissing, checkUsernameExists, (req, res, next) => {
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -66,7 +66,27 @@ router.post('/login', (req, res) => {
     4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
       the response body should include a string exactly as follows: "invalid credentials".
   */
-  res.end('implement login, please!');
+  if (bcrypt.compareSync(req.body.password, req.user.password)) {
+    const token = generateToken(req.user)
+    res.status(200).json({ 
+      message: `welcome, ${req.user.username}`, 
+      token: token,
+    })
+  } else {
+    next({ status: 401, message: "invalid credentials"})
+  }
 });
+
+function generateToken(user) {
+  const output = {
+    subject: user.user_id,
+    username: user.username,
+  }
+  const options = {
+    expiresIn: '1d',
+  }
+  return jwt.sign(output, process.env.JWT_SECRET, options)
+}
+
 
 module.exports = router;
