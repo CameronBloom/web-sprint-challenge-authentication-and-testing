@@ -3,9 +3,10 @@ require("dotenv").config()
 const router = require('express').Router();
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { checkMissing, checkUsernameFree, checkSpaces } = require("./auth-middleware")
 const User = require('../users/users-model')
 
-router.post('/register', (req, res, next) => {
+router.post('/register', checkMissing, checkSpaces, checkUsernameFree , (req, res, next) => {
   
   /*
     IMPLEMENT
@@ -34,7 +35,7 @@ router.post('/register', (req, res, next) => {
   */
   const { username, password } = req.body
   const hash = bcrypt.hashSync(password, 8)
-  User.add({ username, password: hash })
+  User.add({ username: username, password: hash })
     .then(created => {
       res.status(201).json(created)
     })
