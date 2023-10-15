@@ -78,6 +78,7 @@ router.post('/login', checkMissing, checkUsernameExists, (req, res, next) => {
 });
 
 function generateToken(user) {
+  const secret = process.env.SECRET || "shh"
   const output = {
     subject: user.user_id,
     username: user.username,
@@ -85,7 +86,7 @@ function generateToken(user) {
   const options = {
     expiresIn: '1d',
   }
-  return jwt.sign(output, process.env.JWT_SECRET, options)
+  return jwt.sign(output, secret, options)
 }
 
 
