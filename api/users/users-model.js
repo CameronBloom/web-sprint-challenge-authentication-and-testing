@@ -11,7 +11,6 @@ function findById(id) {
   ).where('u.id', id).first()
 }
 
-
 /**
   resolves to the newly inserted user { user_id, username, password }
  */
