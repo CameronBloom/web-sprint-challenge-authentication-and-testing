@@ -35,9 +35,25 @@ describe("users model function", () => {
       expect(users).toHaveLength(1)
     })
   })
+  describe("[POST] register endpoint", () => {
+    it("...", async () => {
+      const addedUser = await request
+        .post('/api/auth/register')
+        .send({
+          "username": "Captain Marvel",
+          "password": "foobar",
+        })
+      expect(addedUser.body.username).toBe("Captain Marvel")
+    })
+  })
+  describe("[POST] login endpoint", () => {
+    it("...", async () => {
+
+    })
+  })
   describe("[GET] jokes endpoint", () => {
     it("tries to access jokes without logging in", async () => {
-      let jokes = await request.get('/api/jokes')
+      const jokes = await request.get('/api/jokes')
       expect(jokes.body.message).toBe("token required")
     })
   })
