@@ -29,6 +29,7 @@ test('sanity', () => {
 describe("users model function", () => {
 
   describe("create user", () => {
+    // create user
     it("adds user to the db", async () => {
       let users
       await User.add(user1)
@@ -38,6 +39,7 @@ describe("users model function", () => {
   })
 
   describe("[POST] register endpoint", () => {
+    // missing information
     it("tries to register with missing information", async () => {
       const addedUser = await request
         .post('/api/auth/register')
@@ -47,6 +49,7 @@ describe("users model function", () => {
         })
       expect(addedUser.body.message).toBe("username and password required")
     })
+    // valid information
     it("tries to register with valid information", async () => {
       const addedUser = await request
         .post('/api/auth/register')
@@ -56,6 +59,7 @@ describe("users model function", () => {
         })
       expect(addedUser.body.username).toBe("Captain Marvel")
     })
+    // preexisting username
     it("tries to register with a preexisting username", async () => {
       let addedUser = await request
         .post('/api/auth/register')
@@ -74,15 +78,79 @@ describe("users model function", () => {
   })
 
   describe("[POST] login endpoint", () => {
+    // missing info
+    it("tries to login with missing information", async () => {
+      const addedUser = await request
+        .post('/api/auth/login')
+        .send({
+          "username": "",
+          "password": "foobar",
+        })
+      expect(addedUser.body.message).toBe("username and password required")
+    })
+    // bad info 
+    it("tries to login with bad information", async () => {
+      const addedUser = await request
+        .post('/api/auth/login')
+        .send({
+          "username": "adsfadsfadsf",
+          "password": "foobar",
+        })
+      expect(addedUser.body.message).toBe("invalid credentials")
+    })
+    // get token
     it("...", async () => {
+      // register
+      await request.post('/api/auth/register')
+        .send({
+          "username": "Captain Marvel",
+          "password": "foobar",
+        })
 
+      // login
+      const loggedUser = await request
+        .post('/api/auth/login')
+        .send({
+          "username": "Captain Marvel",
+          "password": "foobar",
+        })
+
+      // token exists
+      expect(loggedUser.body.token).toBeTruthy()
     })
   })
-  
+
   describe("[GET] jokes endpoint", () => {
+    // without login
     it("tries to access jokes without logging in", async () => {
       const jokes = await request.get('/api/jokes')
       expect(jokes.body.message).toBe("token required")
+    })
+
+    // with login
+    it("tries to access jokes after registering and logging in", async () => {
+      // register
+      await request.post('/api/auth/register')
+        .send({
+          "username": "Captain Marvel",
+          "password": "foobar",
+        })
+        
+      // login
+      const loggedUser = await request
+        .post('/api/auth/login')
+        .send({
+          "username": "Captain Marvel",
+          "password": "foobar",
+        })
+
+      const token = loggedUser.body.token
+
+      // get jokes
+      const jokes = await request.get('/api/jokes')
+        .set('Authorization', token)
+
+      expect(jokes.body.length).toBe(3)
     })
   })
 })
